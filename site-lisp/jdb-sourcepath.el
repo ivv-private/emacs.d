@@ -76,4 +76,4 @@
         (split-string (buffer-substring (point) (line-end-position)) ":")
       ())))
 
-(provide "jdb-sourcepath")
+(provide 'jdb-sourcepath)
