@@ -1,3 +1,5 @@
+(require 'find-lisp)
+
 (defvar jdb-sourcepath-root "~/projects"
   "Root directory which contains a sources")
 
