@@ -6,10 +6,10 @@
 (defvar jdb-sourcepath-prune '("target" ".svn" "arch" "examples" "tests" "test" "samples" "." "..")
   "Directories to skip while searching")
 
-(defvar jdb-rcfile "~/.jdbrc" 
+(defvar jdb-rcfile "~/.jdbrc"
   "Jdb rc file")
 
-(defconst jdb-sourcepath-java-file ".+\.java$" 
+(defconst jdb-sourcepath-java-file ".+\\.java$"
   "Java file regexp")
 
 (defun jdb-setup-get-package-name (file)
@@ -23,16 +23,16 @@
          (if (and begin end)
            (buffer-substring begin (- end 1)))))))
 
-(defun jdb-setup-directory-predicate (file dir) 
+(defun jdb-setup-directory-predicate (file dir)
   "Filter directories which has `jdb-sourcepath-java-file' files and prune its subdirs."
   (not
    (or
     (member file jdb-sourcepath-prune)
-    (and 
-     (file-directory-p (expand-file-name file dir)) 
+    (and
+     (file-directory-p (expand-file-name file dir))
      (directory-files (expand-file-name file dir) nil jdb-sourcepath-java-file)))))
 
-(defun jdb-setup-file-predicate (file dir) 
+(defun jdb-setup-file-predicate (file dir)
   "Filter directories which has `jdb-sourcepath-java-file'"
   (let ((file-name (expand-file-name file dir)))
     (and
@@ -43,23 +43,23 @@
 (defun jdb-setup ()
   "Find  java-sourcepathes within `jdb-sourcepath-root' and write to `jdb-rcfile'"
   (interactive)
-  (let ((sources 
+  (let ((sources
          (delete-dups
           (mapcar
            (lambda (source-dir)
-             (let ((package 
+             (let ((package
                     (jdb-setup-get-package-name
                      (car (directory-files source-dir t jdb-sourcepath-java-file)))))
                (if package
                    (replace-regexp-in-string
                     (concat "." package) "" source-dir) ; cut package postfix with path delimiter
                  (message (format "error: %s" source-dir)))))
-           (find-lisp-find-files-internal 
+           (find-lisp-find-files-internal
             jdb-sourcepath-root
-            'jdb-setup-file-predicate 
+            'jdb-setup-file-predicate
             'jdb-setup-directory-predicate)))))
     (save-excursion
-      (with-current-buffer 
+      (with-current-buffer
           (find-file-noselect jdb-rcfile)
         (goto-char (point-min))
         (if (re-search-forward "^use " nil t)
