@@ -47,6 +47,9 @@
 ;; dired
 (require 'dired-x)
 (setq dired-omit-files "^\\...+$")
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (rename-buffer (format "*Dired: %s*" (buffer-name)))))
 
 ;; uniquify buffers
 (require 'uniquify)
