@@ -1,512 +1,520 @@
-(server-start)
+(setq user-emacs-directory "~/config/emacs.d/")
 
-;; CEDET
-(load-file (concat user-emacs-directory "/site-lisp/cedet-1.1/common/cedet.elc"))
-(require 'cedet)
-(require 'semantic)
-(require 'semanticdb)
-(setq semantic-default-submodes 
-      '(global-semanticdb-minor-mode
-        global-semantic-decoration-mode
-        global-semantic-mru-bookmark-mode
-        global-srecode-minor-mode))
-(semanticdb-enable-gnu-global-databases 'java-mode)
+(make-directory (locate-user-emacs-file "local") :no-error)
+(add-to-list 'load-path (locate-user-emacs-file "lisp"))
 
-;; load-path
-(let ((default-directory
-        (concat user-emacs-directory
-                (convert-standard-filename "site-lisp/"))
-        ))
-  (normal-top-level-add-to-load-path '("."))
-  (normal-top-level-add-subdirs-to-load-path))
+;; Setup package manager
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "http://melpa.org/packages/") t)
+(package-initialize)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package)) 
+(require 'use-package)
 
-;; settings
-(add-to-list 'load-path 
-             (concat user-emacs-directory
-                     (convert-standard-filename "etc/")) t)
+;; Customization
+(setf backup-inhibited t
+      auto-save-default nil
+      auto-save-list-file-prefix (locate-user-emacs-file "local/saves")
+      inhibit-startup-message t
+      initial-scratch-message nil
+      echo-keystrokes 0.1
+      delete-active-region nil
+      disabled-command-function nil
+      custom-file (make-temp-file "emacs-custom")
+      large-file-warning-threshold 536870911
+      gc-cons-threshold (* 1024 1024 32)
+      ring-bell-function (lambda ())
+      redisplay-dont-pause t
+      column-number-mode t)
 
-;; interface
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1)) (if (fboundp 'tool-bar-mode) (tool-bar-mode -1)) (if (fboundp 'menu-bar-mode) (menu-bar-mode -1)) (if (fboundp 'tooltip-mode) (tooltip-mode -1)) (global-set-key "\C-w" 'backward-kill-word) (global-set-key "\C-x\C-k" 'kill-region) (global-set-key "\M-`" 'other-window)
+(prefer-coding-system 'utf-8-unix)
+
 (ansi-color-for-comint-mode-on)
-(setq redisplay-dont-pause t)
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
-(fset 'yes-or-no-p 'y-or-n-p)
-(setq-default dabbrev-case-fold-search t) (put 'narrow-to-region 'disabled nil) (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; backup
-(setq
- backup-by-copying t ; don't clobber symlinks  backup-directory-alist (list (cons "." (concat user-emacs-directory "var/backup")))  delete-old-versions t  kept-new-versions 6  kept-old-versions 2  version-control t  auto-save-file-name-transforms (list (list ".*" (concat user-emacs-directory "var/autosaves/\\1") t)))
+(setf vc-handled-backends nil
+      vc-follow-symlinks t)
 
-;; bookmark
-(setq
- bookmark-save-flag 1
- bookmark-default-file (concat user-emacs-directory (convert-standard-filename "var/bookmarks.bmk"))  bookmark-file bookmark-default-file)
-
-;; dired
-(require 'dired-x)
-(setq dired-omit-files "^\\...+$")
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (rename-buffer (format "*Dired: %s*" (buffer-name)))))
-
-;; uniquify buffers
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
-
-;; ;; abbrevs
-;; (setq abbrev-file-name             
-;;       (concat user-emacs-directory "var/abbrev_defs"))
-;; (setq save-abbrevs t)
-;; (if (file-exists-p abbrev-file-name)
-;;     (quietly-read-abbrev-file))
-;; ;; (setq default-abbrev-mode t)
-
-;; I hate tabs!
-(setq-default
- indent-tabs-mode nil
- indent-tabs-mode nil
- c-basic-indent 4
- c-basic-offset 4
- tab-width 4)
-;; (highlight-tabs)
-;; (highlight-trailing-whitespace)
-
-;;
-(show-paren-mode t)
-
-;;
-(ido-mode t)
-(require 'uniquify)
-
-;;
-(ffap-bindings)
-
-;;
-(global-set-key [f9] 'toggle-truncate-lines)
-
-;; eshell
-(require 'eshell)
-(require 'em-smart)
-(require 'em-term)
-(setq eshell-where-to-jump 'begin)
-(setq eshell-review-quick-commands nil)
-(setq eshell-smart-space-goes-to-end t)
-(add-to-list 'eshell-visual-commands "ssh")
-
-(require 'ibuffer)
-(setq ibuffer-saved-filter-groups
-      (quote (("Default"
-               ("dired" (mode . dired-mode))
-               ("java-tests" (filename . ".+Test.java"))
-               ("java" (or (mode . jde-mode) (mode . java-mode))) 
-               ("lisp" (or (mode . lisp-mode) (mode . emacs-lisp-mode)))
-               ("groovy" (mode . groovy-mode))
-               ("scripts" (or (mode . shell-script-mode) (name . ".*sh$")))
-               ("db" (or (mode . sql-mode) (mode . sqlplus-mode)))
-               ("logs" (or (name . ".*log") (name . "catalina.out")))
-               ("xml" (mode . nxml-mode))
-               ("org" (mode . org-mode))
-               ("utils" (name . "*.+"))
-               ("sys" (or (name . "\*Malabar.*") (mode . grep-mode)))
-               ("shell" (or (mode . shell-mode) (mode . eshell-mode)))))))
-
-(add-hook 'ibuffer-mode-hook
-          (lambda ()
-            (ibuffer-switch-to-saved-filter-groups "Default")
-            (ibuffer-do-sort-by-filename/process)))
+ ;; '(explicit-sh-args (quote ("-login" "-i")))
+ ;; '(fill-column 120)
+;; '(indent-tabs-mode t)
+;; '(midnight-mode t nil (midnight))
+;; '(show-paren-mode t nil (paren))
+ ;; '(standard-indent 1)
+ ;; '(tab-width 4)
+ ;; '(user-full-name "Ignatyev Vjacheslav")
+;; '(user-mail-address "ignatyev@lanit.ru")
+;; '(warning-suppress-types (quote ((\(undo\ discard-info\)))))
+ ;; '(whitespace-line-column nil)
+ ;; '(whitespace-style
+ ;;   (quote
+ ;; 	(face trailing space-before-tab newline indentation empty space-after-tab)))
 
 
-;; org-mode
-(setq org-agenda-files (list "~/org"))
-(setq org-log-done t
-      org-use-fast-todo-selection t)
 
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!/!)")
-        (sequence "WAITING(w@/!)" "|" "CANCELLED(c!/!)")
-        (sequence "SOMEDAY(s!/!)" "|")
-        (sequence "ONGOING(o)" "|")))
 
-(setq org-todo-keyword-faces
-      '(("TODO"  . (:foreground "red" :weight bold))
-        ("NEXT"  . (:foreground "red" :weight bold))
-        ("DONE"  . (:foreground "forest green" :weight bold))
-        ("WAITING"  . (:foreground "orange" :weight bold))
-        ("CANCELLED"  . (:foreground "forest green" :weight bold))
-        ("SOMEDAY"  . (:foreground "orange" :weight bold))
-        ("ISSUE"  . (:foreground "forest green" :weight bold))
-        ("ONGOING"  . (:foreground "orange" :weight bold))))
+;; UI Customization
 
-;;(org-remember-insinuate)                                                                            
-;;(setq org-directory "~/org/")
-;; (setq org-default-notes-file (concat org-directory "/notes.org"))2 ;; (setq org-clock-persist 'history) ;; (org-clock-persistence-insinuate)
+(transient-mark-mode 1)
 
-(setq org-link-abbrev-alist 
-      (quote 
-       (("issue" . "http://support.samara.lanit.ru/issues/"))
-       ))
+(when (fboundp 'set-horizontal-scroll-bar-mode)
+  (set-horizontal-scroll-bar-mode nil))
+(when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(when (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
-(global-set-key "\C-cl" 'org-store-link) (global-set-key "\C-ca" 'org-agenda) (global-set-key "\C-cb" 'org-iswitchb) (global-set-key "\C-cr" 'org-remember) 
+(if (fboundp 'tooltip-mode) (tooltip-mode -1))
+(defalias 'yes-or-no-p 'y-or-n-p)
 
-;; gnus
-;; (setq gnus-init-file
-;;       (concat user-emacs-directory
-;;               (convert-standard-filename "gnus")))
+;; Keybindings
+(global-set-key [f8] 'toggle-truncate-lines)
+(global-set-key "\C-w" 'backward-kill-word) 
+(global-set-key "\C-x\C-k" 'kill-region) 
+(global-set-key "\M-`" 'other-window)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; ;; linphone
-;; (require 'linphone)
-
-;; ;; w3m
-;; (require 'w3m-load)
-
-;; w3
-(require 'w3-auto)
-
-;; auto-clean buffers
-(require 'midnight)
-(add-to-list 'clean-buffer-list-kill-regexps
-             "\*GTAGS SELECT.*")
-
-;; ;; bbdb
-;; (require 'bbdb)
-;; ;; (bbdb-initialize 'message 'gnus)
-
-;; ;; emms
-;; (require 'emms-setup)
-;; (emms-standard)
-;; (emms-default-players)
-
-;; ;; jabber
-;; (require 'jabber-autoloads)
-
-;; ;; rainbow
-;; (require 'rainbow-mode)
-
-;; ; Setup email sending
-;; (require 'smtpmail)
-
-;; ;; dict
-;; (require 'dictem)
-;; (dictem-initialize)
-;; (global-set-key [f5] 'dictem-run-search) ;; (global-set-key "\C-cm" 'dictem-run-match) ;; (global-set-key "\C-cd" 'dictem-run-define) ;; (global-set-key "\C-c\M-r" 'dictem-run-show-server) ;; (global-set-key "\C-c\M-i" 'dictem-run-show-info) ;; (global-set-key "\C-c\M-b" 'dictem-run-show-databases)
-
-;; lang
-
-(global-unset-key [f8] )
+(global-set-key (kbd "M-s M-s") 'rgrep)
+(global-set-key (kbd "M-r") 'replace-regexp)
+(global-set-key (kbd "C-x C-g") 'revert-buffer)
+(global-set-key [f8] 'toggle-truncate-lines)
 (global-set-key (kbd "C-z") 'compile)
 
-;; log4j
-(require 'log4j-mode)
-(setq auto-mode-alist
-      (append '(("server.log" . log4j-mode) 
-                ("catalina.out" . log4j-mode) 
-                ("tomcat.log" . log4j-mode))
-              auto-mode-alist))
 
-(add-hook
- 'log4j-mode-hook
- (lambda ()
-   (setq truncate-lines t)
-   (text-scale-set -1)
-   (toggle-read-only t)
-   (buffer-disable-undo)
-   (end-of-buffer)))
+;; Packages
+
+(use-package dabbrev
+  :defer t
+  :init (setf abbrev-file-name (locate-user-emacs-file "local/abbrev_defs"))
+  :config (setf dabbrev-case-fold-search nil))
 
 
-;; gtags
-(require 'gtags)
-(autoload 'gtags-mode "gtags" "" t)
-(setq gtags-suggested-key-mapping t)
-(global-set-key (kbd "C-c t r") 'gtags-find-rtag)
-(global-set-key (kbd "C-c t f") 'gtags-find-file)
-(global-set-key (kbd "C-c t t") 'gtags-find-tag)
-(global-set-key (kbd "M-.") 'gtags-find-tag)
-(add-hook 'gtags-select-mode-hook
-  '(lambda ()
-     (setq hl-line-face 'underline)
-     (hl-line-mode 1)
-))
+(use-package glasses
+  :config  (setq glasses-original-separator "-"
+		 glasses-separator "-"
+		 glasses-uncapitalize-p t))
+
+(use-package edit-server
+  :init
+  (setq server-socket-dir (format "%sserver" user-emacs-directory))
+  (add-hook 'after-init-hook 'server-start t))    
+  
+(use-package comint
+  :config (setq
+	   comint-completion-autolist t
+	   comint-input-ignoredups t
+	   comint-use-prompt-regexp t))
+
+(use-package compile
+  :config (setq
+	   compilation-always-kill t
+	   compilation-ask-about-save nil
+	   compilation-auto-jump-to-first-error t
+	   compilation-scroll-output nil
+	   compilation-window-height 20))
+
+(use-package ivy
+  :config (setq
+	   ivy-ignore-buffers (quote ("\\` " "^\\*magit-\\(process\\|diff\\)"))))
+
+(use-package counsel
+  :config (setq counsel-find-file-at-point t))
+
+(use-package jdee
+  :bind (("C-c C-v C-u" jdee-package-update)
+	 ([f5] jdee-x-single-test-set)
+	 ([f10] jdee-open-project-file)
+	 ([f6] jdee-x-run-test)
+	 ([f1] (lambda () (interactive) (switch-to-buffer (car (get-buffers-matching-mode 'gud-mode)))))
+	 ([f2] gud-step)
+	 ([f3] gud-next)
+	 ([f7] gud-cont)
+	 ([f7] gud-cont)
+
+	 )
+  :config (setq
+	   jdee-jdk-registry '(("1.8.0_60" . "~/opt/jdk/8u60"))
+	   jdee-compiler '(("eclipse java compiler server" "~/usr/lib/ecj-4.5.jar"))	   
+	   jdee-compile-option-hide-classpath t
+	   jdee-flycheck-enable-p nil
+	   jdee-server-dir "~/usr/lib/jdee"
+	   jdee-import-group-function 'jdee-import-group-first-level
+	   )
+
+  (defun jdee-import-group-first-level (import-tag)
+    "My order for importing"
+    (let* ((import-name (semantic-tag-name import-tag))
+	   (prefix (substring import-name 0 (string-match "\\." import-name))))
+      (cond ((string-match "java" prefix) "1-java")
+	    ((string-match "javax" prefix) "2-javax")
+	    ((string-match "org" prefix) "3-org")
+	    (t prefix))))
+  
+  (defun jdee-x-jump-to-test ()
+    "Open corresponded test"
+    (interactive)
+    (let* ((sources
+	    (delete-if-not
+	     'file-exists-p
+	     (mapcar (apply-partially
+		      'expand-file-name
+		      (jdee-package-get-package-directory)) jdee-sourcepath)))
+	   (test-file-name
+	    (concat (jdee-junit-get-tester-name
+		     (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
+		    ".java"))
+	   (fn (find-if 'file-exists-p  (mapcar (apply-partially 'expand-file-name test-file-name) sources))))
+      (if fn
+	  (find-file fn)
+	(progn
+	  (setq default-directory (car (last sources)))
+	  (call-interactively 'find-file)))))
+  (defvar jdee-x-buffer-test nil
+    "Test buffer that is binded to current java source")
+
+  (defvar jdee-x-single-test ""
+    "Selected test for single executionn")
+
+  (defun jdee-x-run-test ()
+    "Run junit test"
+    (interactive)
+
+    (unless jdee-x-buffer-test
+      (error "There is no selected unit test buffer. Jump to the junit buffer and press f6"))
+
+    (with-current-buffer (get-buffer jdee-x-buffer-test)
+      (jdee-load-project-file)
+      (add-to-list 'jdee-global-classpath (expand-file-name "~/usr/lib/single-test-runner-1.0.jar"))
+      (if jdee-x-single-test
+	  (setq jdee-junit-testrunner-type "x.junit.SingleTestRunner")
+	(setq jdee-junit-testrunner-type "org.junit.runner.JUnitCore"))
+      (if current-prefix-arg
+	  (add-to-list 'jdee-run-option-vm-args "-agentlib:jdwp=transport=dt_socket,address=localhost:9009,server=y,suspend=y"))
+      (let ((saved-dir default-directory))
+	(jdee-junit-run)
+	(setq default-directory saved-dir))
+      (if (remove-if 'null (mapcar
+			    (lambda (arg) (string-match "-agentlib:jdwp.*suspend=y" arg))
+			    jdee-run-option-vm-args))
+	  (jdb "jdb -connect com.sun.jdi.SocketAttach:port=9009,hostname=localhost")))
+    
+    (jdee-load-project-file))
+
+  (defun jdee-x-single-test-set ()
+    "Toggle Single/All test running"
+    (interactive)
+    (setq jdee-x-buffer-test (current-buffer))
+    
+    (if current-prefix-arg
+	(setq jdee-x-single-test (read-string "Single test to run: "))
+      ;; (helm :sources (helm-build-sync-source "tests" :candidates '()) :buffer "*select junit test*")
+      (let ((method (jdee-parse-get-method-at-point)))
+	(setq jdee-x-single-test
+	      (if method
+		  (let ((test-name (cdr (car method))))
+		    (message (format "Single running test: %s" test-name))
+		    test-name)
+		(progn
+		  (message "Toggle all running tests")
+		  ()))))))
+
+  (defmethod jdee-run-vm-args ((this jdee-run-vm))
+    "Get command line args."
+    (if jdee-x-single-test
+	(append jdee-run-option-vm-args
+		(list (format "-Dtest.single=%s" jdee-x-single-test)))
+      jdee-run-option-vm-args))
+
+  (defun java-x-before-save ()
+    (delete-trailing-whitespace)
+    ;; (jdee-import-kill-extra-imports)
+    (jdee-import-organize))
+
+  (defun java-x-after-save ()
+    (jdee-compile))
+
+  (defun java-my-minor ()
+    (progn
+      (glasses-mode t)
+      (setq-default indent-tabs-mode t)
+      (whitespace-mode t)
+
+      (local-set-key (kbd "M-RET") 'jdee-complete-minibuf)
+      (add-hook 'before-save-hook 'java-x-before-save nil t)
+      (add-hook 'after-save-hook  'java-x-after-save nil t)
+      ))
+
+  (add-hook 'jdee-mode-hook 'java-my-minor)
+
+  (defgroup maglev-faces nil
+    "Faces for displaying Maglev logs."
+    :group 'applications)
+
+  (defface maglev-log
+    '((t (:background "gold" :foreground "black")))
+    "General face for Maglev log"
+    :group 'maglev-faces)
+
+  (defface maglev-client-in
+    '((t (:inherit 'maglev-log)))
+    "Face for client to market."
+    :group 'maglev-faces)
+
+  (defface maglev-external-out
+    '((t (:inherit 'maglev-log)))
+    "Face for adapter to market."
+    :group 'maglev-faces)
 
 
-;; java 
+  (defface maglev-client-out
+    '((t (:inherit 'maglev-log :inverse-video t)))
+    "Face for adapter to client."
+    :group 'maglev-faces)
 
-;; compiller
-(require 'compile)
-(setq compilation-error-regexp-alist
-      (list
-       ;; works for maven 3.x
-       '("^\\(\\[ERROR\\] \\)?\\(/[^:]+\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 2 3 4)
-       ;; works for maven jde javac server
-       '("^\\(/[^:]+\\):\\([0-9]+\\):" 1 2)
-       ;; surefire 
-       '("^\\sw+(\\(\\sw+\\.\\)+\\(\\sw+\\)).+<<< \\(FAILURE\\|ERROR\\)!$"2)
-))
+  (defface maglev-external-in
+    '((t (:inherit 'maglev-log :inverse-video t)))
+    "Face for market to adapter."
+    :group 'maglev-faces)
 
-;; append compilation snippets
-(let ((snippets-buf (find-file-noselect (concat user-emacs-directory "etc/java-compile.org"))))
-  (setq compile-history nil)
-  (with-current-buffer 
-      snippets-buf
-    (org-map-region
-     '(lambda nil
-        (add-to-list 
-         'compile-history 
-         (format 
-          "#%s\\\n%s"
-          (nth 4 (org-heading-components))
-          (mapconcat 'string (org-get-entry) ""))))
-     1 (buffer-end 1))
-    (kill-buffer snippets-buf)))
+  (setq jdee-run-mode-hook ())
 
-;; yasnippet
-;; (require 'yasnippet-bundle)
-
-;; auto-complete
-(require 'auto-complete-config)
-(ac-config-default)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/site-lisp/auto-complete/ac-dict")
-(add-to-list 'ac-modes 'jde-mode)
-(add-to-list 'ac-modes 'sqlplus-mode)
-(setq ac-ignore-case 'smart)
-(setq ac-use-menu-map t)
-(define-key ac-menu-map "\C-n" 'ac-next)
-(define-key ac-menu-map "\C-p" 'ac-previous)
-
-(require 'gud)
-(defun java-my-minor () 
- (progn
-  (gtags-mode t)
-  (glasses-mode t)
-  (subword-mode t)
-  ;; (jde-abbrev-mode t)
-  (add-to-list 'ac-sources ac-source-gtags)
-  (local-set-key [f8] 'gud-next)
-  (local-set-key [f9] 'gud-cont)
-  (local-set-key (kbd "M-/") 'dabbrev-expand)
-  (local-set-key (kbd "C-c C-v .") 'jde-complete-minibuf)
-  (local-set-key (kbd "C-c j r") 'jde-junit-run)
-  (add-hook 
-   'before-save-hook
+  (add-hook
+   'jdee-run-mode-hook
    (lambda ()
-     (jde-import-kill-extra-imports)
-     (jde-import-all)
-     (jde-import-organize))
-   nil t)
-  (add-hook 'after-save-hook 'jde-compile nil t)))
-
-(add-hook 'jde-mode-hook 'java-my-minor)
-
-;; jdb
-(gud-def 
- gud-redefine 
- (gud-call 
-  (format 
-   "redefine %%c %s/%s.class"
-   (file-truename jde-compile-option-directory)
-   (replace-regexp-in-string "\\." "/" (gud-format-command "%c" arg))))
- "\C-r" "Redefine class")
-
-(require 'jdb-sourcepath)
-(add-hook 
- 'jdb-mode-hook
- (lambda ()
-   (set 'gud-jdb-sourcepath (jdb-sourcepath-from-rc))))
-
-;; (run-at-time "1:00am" (* 60 60 24) 'jdb-setup)
+     (setq truncate-lines t)
+     (text-scale-set -1)
+     (buffer-disable-undo)
 
 
-;; ; make completion buffers disappear after 3 seconds.
-;; (add-hook 'completion-setup-hook
-;;   (lambda () (run-at-time 3 nil
-;;     (lambda () (delete-windows-on "*Completions*")))))
+     (setq hi-lock-interactive-patterns ())
 
-;; sql
-(setenv "SQLPATH" (expand-file-name "etc/sql" user-emacs-directory))
+     (highlight-regexp "\\<ERROR\\>.*" 'compilation-error)
+     (highlight-regexp "\\<WARN\\>.*" 'compilation-warning)
+     (highlight-regexp "\\<DEBUG\\>.*" 'font-lock-preprocessor-face)
+     (highlight-regexp "\\<INFO\\>.*" 'font-lock-function-name-face)
 
-;;(add-hook
-;; 'after-init-hook
-;; (lambda nil 
-;;   (progn
-;;     (require 'sqlplus)
-;;     (require 'plsql))))
-(add-to-list 'auto-mode-alist '("\\.sqp\\'" . sqlplus-mode))
-(add-to-list 'auto-mode-alist '("\\.sql\\'" . sqlplus-mode))
+     
+     (highlight-regexp "Expected:.*" 'compilation-info)
+     (highlight-regexp "Actual:.*" 'compilation-warning)
 
-(setq auto-mode-alist
-      (append '(("\\.pls\\'" . plsql-mode) ("\\.pkg\\'" . plsql-mode)
-                ("\\.pks\\'" . plsql-mode) ("\\.pkb\\'" . plsql-mode)
-                ("\\.PLS\\'" . plsql-mode) ("\\.PKS\\'" . plsql-mode)
-                ("\\.PKB\\'" . plsql-mode) ("\\.PKG\\'" . plsql-mode)
-                ("\\.prc\\'" . plsql-mode) ("\\.fnc\\'" . plsql-mode)
-                ("\\.trg\\'" . plsql-mode) ("\\.vw\\'" . plsql-mode)
-                ("\\.PRC\\'" . plsql-mode) ("\\.FNC\\'" . plsql-mode)
-                ("\\.TRG\\'" . plsql-mode) ("\\.VW\\'" . plsql-mode))
-              auto-mode-alist ))
+     (highlight-regexp "CLIENT_IN.*" 'maglev-client-in)
+     (highlight-regexp "CLIENT_OUT.*" 'maglev-client-out)
+     (highlight-regexp "EXTERNAL_IN.*" 'maglev-external-in)
+     (highlight-regexp "EXTERNAL_OUT.*" 'maglev-external-out)
 
-(defun sqlplus-x-describe ()
-  (interactive)
-  (sqlplus-check-connection)
-  (sqlplus-send-user-string (concat "desc " (read-from-minibuffer "Describe object: " (word-at-point)))))
+     (highlight-regexp "\\(Executing test:.*\\| TEST STARTED.* \\)" 'bold)
 
-(defun sqlplus-x-select-all ()
-  (interactive)
-  (sqlplus-check-connection)
-  (sqlplus-send-user-string (concat "select * from " (read-from-minibuffer "Select * from: " (word-at-point)) ";\n")))
+     (highlight-regexp "|35=[^|]+|" 'mode-line-highlight)
 
-(require 'org-table)
-(defvar sqlplus-x-columns '(sqlplus-x-service sqlplus-x-user sqlplus-x-pwd))
-(defun sqlplus-x-connect ()
-  "Build a connection string and make a connection. The point must be in an org-mode table.
-Columns of the table must correspond to the `sqlplus-x-columns' variable."
-  (interactive)
-  (org-table-force-dataline)
-  (let*
-      ((cur-row (nth (org-table-current-dline) (org-table-to-lisp)))
-       (connetion (mapcar (lambda (column) (cons column (nth (position column sqlplus-x-columns) cur-row))) sqlplus-x-columns))
-       (user (if (= (org-table-current-column) (+ 1 (position 'sqlplus-x-user sqlplus-x-columns)))
-                 (thing-at-point 'symbol)
-               (cdr (assq 'sqlplus-x-user connetion)))))
-    (sqlplus
-     (format 
-      "%s/%s@%s" user (cdr (assq 'sqlplus-x-pwd connetion)) (cdr (assq 'sqlplus-x-service connetion)))
-     (format
-      "%s@%s.sqp" user (cdr (assq 'sqlplus-x-service connetion))))))
-
-(global-set-key [f4] 'sqlplus-x-connect)
+     ))
 
 
+)
 
-;; timer-list
+(use-package gud
+  :bind (([f1] (lambda () (interactive) (switch-to-buffer (car (get-buffers-matching-mode 'gud-mode)))))
+	 ([f2] gud-step)
+	 ([f3] gud-next)
+	 ([f7] gud-cont)
+	 ([f7] gud-cont))
+  :config
+  (setq gud-jdb-use-classpath t)
+  (gud-def
+   gud-redefine
+   (gud-call
+    (format
+     "redefine %%c %s/%s.class"
+     (file-truename jdee-compile-option-directory)
+     (gud-format-command "%c" arg)))
+   ;; (replace-regexp-in-string "\\." "/" (gud-format-command "%c" arg)))))
+   "\C-r" "Redefine class")
 
+  (use-package jdb-sourcepath
+    :config
+    (add-hook
+     'jdb-mode-hook
+     (lambda ()
+       (setq gud-jdb-classpath (jdb-sourcepath-from-rc)
+	     comint-prompt-regexp "^.*\] ")))))
 
+(use-package yas
+  :config (yas-global-mode t))
 
-(add-hook 
- 'sqlplus-mode-hook
- (lambda () 
-   (progn
-     (local-set-key [f4] 'sqlplus-x-describe)
-     (local-set-key [f5] 'sqlplus-x-select-all)
-     (local-set-key (kbd "C-x C-e") 'sqlplus-explain)
-     (local-set-key (kbd "C-x C-r") 'sqlplus-send-region)
-     (local-set-key (kbd "C-c C-c") 'sqlplus-send-current)
-     (local-set-key [f2] 'sqlplus-show-buffer))))
+(use-package ffap
+  :config (ffap-bindings))
 
-;; nxml
-(add-to-list 'auto-mode-alist '("\\.xhtml$" . nxml-mode))
-(add-to-list 'auto-mode-alist '("\\.xml$" . nxml-mode))
-(add-to-list 'auto-mode-alist '("\\.jspx$" . nxml-mode))
+(use-package ido
+  :config (ido-mode t))
 
-;; ;; javaScript
-;; (add-to-list 'auto-mode-alist '("\\.js$" . js-mode))
+(use-package ivy
+  :bind (("C-c SPC" ivy-resume)
+	 ("M-o" ivy-switch-buffer))
+  :config
+  (ivy-mode 1)
+  (setq enable-recursive-minibuffers t))
+  
+(use-package counsel
+    :bind
+    (("M-x" counsel-M-x)
+     ("C-x C-f" counsel-find-file)
+     ("C-x r b" counsel-bookmark)
+     ("C-x l" counsel-locate)
+     ("C-x g" counsel-git)))
+;; (global-set-key "\M-." 'counsel-gtags-find-definition)
 
-;; groovy
-;; turn on syntax highlighting
-;;(global-font-lock-mode 1)
-
-;; ;;; use groovy-mode when file ends in .groovy or has #!/bin/groovy at start
-;; (autoload 'groovy-mode "groovy-mode" "Major mode for editing Groovy code." t)
-;; (add-to-list 'auto-mode-alist '("\.groovy$" . groovy-mode))
-;; (add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
-
-;; ;;; make Groovy mode electric by default.
-;; (add-hook 'groovy-mode-hook
-;;           '(lambda ()
-;;              (require 'groovy-electric)
-;;              (groovy-electric-mode)))
-
-;; (add-hook 'ggroovy-mode-hook
-;;           (lambda () 
-;;             (add-hook 'after-save-hook 'malabar-compile-file-silently
-;;                       nil t)))
-
-;; ;; scala
-;; (require 'scala-mode-auto)
-;; (add-hook 'scala-mode-hook
-;;           '(lambda ()
-;;              (yas/minor-mode-on)))
-;; ;; (setq yas/my-directory "/path/to/some/directory/scala-mode/contrib/yasnippet/snippets")
-;; ;; (yas/load-directory yas/my-directory)
-
-;; jdee
-(load "jde-autoload")
-(setq jde-check-version-flag nil)
-(require 'jde-junit)
-;; w3 is failed to load local file, so skip this feature
-(require 'jde-help)
-(defmethod jde-jdhelper-show-url ((this jde-jdhelper) url)
-  (let ((doc-url (jde-url-name url)))
-   (message "Displaying %s from %s"
-            (oref url :class)
-	     (oref (oref url :docset) :description))
-   (jde-jdhelper-show-document this doc-url)))
-(setq jde-compile-option-directory (concat user-emacs-directory "tmp"))
-(setq jde-compile 'compile)
-(add-hook 
-   'jde-project-hooks
-   (lambda () 
-     (progn
-       (setq 
-        jde-global-classpath (add-to-list 'jde-global-classpath jde-compile-option-directory)
-        jde-junit-working-directory (file-name-directory (car (last (jde-find-project-files (car jde-sourcepath))))))
-       )))
-
-;; make prj.el from pom.xml
-(require 'find-lisp)
-(require 'jdb-sourcepath)
-
-(defun jde-x-generate-projects ()
-  "Find pom files and run mvn jdee:jdee"
-  (interactive)
-  (let ((pom-file "pom.xml")
-        (dirs-to-prune (cons "vendor" jdb-sourcepath-prune)))
-    (async-shell-command
-     (mapconcat 
-      '(lambda (pom) 
-         (format 
-          "echo %s && cd %s && $MAVEN2_HOME/bin/mvn install jdee:jdee -DskipTests=true -q"
-          pom
-          (file-name-directory pom)))
-      (find-lisp-find-files-internal 
-       jdb-sourcepath-root
-       (lambda (file dir) 
-         (string= file pom-file))
-       (lambda (file dir) 
-         (not (member file dirs-to-prune))))
-      "; "))))
+(use-package swiper
+;; (require 'thingatpt)
+;; ;; ivy counsel swiper
+;;   (require 'thingatpt)
 
 
-(require 'jde-package)
-(defun jde-x-jump-to-test ()
-  "Open corresponded test"
-  (interactive)
-  (let ((package-dir (jde-package-get-package-directory))
-        (test-class
-          (jde-junit-get-tester-name 
-           (file-name-sans-extension 
-            (file-name-nondirectory buffer-file-name)))))
-    (dolist (test-file
-             (list 
-              (car
-               (delete-if-not
-                'file-exists-p
-                (mapcar
-                 (lambda (source-dir)
-                   (format "%s/%s%s.java" source-dir package-dir test-class))
-                 jde-sourcepath)))))
-      (find-file test-file))))
+;;   (global-set-key "\C-s" (lambda ()
+;; 			   (interactive)
+;; 			   (swiper (let ((thing (thing-at-point 'symbol)))
+;; 				     (if thing
+;; 					 (format "\\<%s\\>" thing)
+  ;; 				       ())))))
+  )
 
 
-;; secrets
-(load (concat user-emacs-directory (convert-standard-filename "etc/secrets.el")))
-(require 'secrets)
+(use-package avy
+  :bind (("M-," avy-goto-word-1)))
 
 
-;; custom settings
-(setq custom-file
-      (concat user-emacs-directory
-              (convert-standard-filename "etc/")
-              (convert-standard-filename "emacs-custom")))
+(use-package helm-gtags
+  :bind (("M-." helm-gtags-find-tag)
+	 ("C-c t t" helm-gtags-find-tag)
+	 ("C-c t f" helm-gtags-find-files)
+	 ("C-c t r" helm-gtags-find-rtag)
+	 ("C-c t s" helm-gtags-find-symbol))
 
-(load custom-file)
+  
+(use-package magit
+  :bind (("C-c g s" magit-status)))
+
+(use-package dired-x
+  :config
+  (setq dired-omit-files "^\\...+$")
+  (add-hook 'dired-mode-hook
+	    (lambda ()
+	      (rename-buffer (format "*Dired: %s*" (buffer-name))))))
+
+
+(use-package uniquify
+  :config
+  (setq uniquify-buffer-name-style 'post-forward-angle-brackets))
+
+(use-package midnight
+  :init
+  (midnight-mode 1))
+
+(use-package ibuffer
+  :config
+  (setq ibuffer-saved-filter-groups
+	(quote (("default"
+		 ("java" (or
+			  (mode . jdee-mode)
+			  (mode . java-mode)))
+		 ("gradle" (name . ".*gradle$"))
+		 ("shell" (mode . shell-mode))
+		 ("dired" (mode . dired-mode))
+		 ("emacs" (or
+			   (name . "^\\*scratch\\*$")
+			   (name . "^\\*Messages\\*$")))
+		 ))))
+  (add-hook 'ibuffer-mode-hook
+	    (lambda ()
+	      (ibuffer-switch-to-saved-filter-groups "default"))))
+
+
+(use-package multiple-cursors
+  :bind
+  ("C-c m l" mc/edit-lines)
+  ("C-c m a" mc/mark-all-like-this)
+  ("C-c >" mc/mark-next-like-this))
+
+(use-package tramp
+  :config
+  (setq tramp-default-method "ssh"))
+
+
+(use-package compile
+  :config
+  (setq compilation-error-regexp-alist
+	(list
+	 ;; gradle
+	 '("\\(/.+\\):\\([0-9]+\\): error:" 1 2)
+
+	 ;; eclipce java compiler
+	 '("\\(.+\\):\\([0-9]+\\): error:" 1 2)
+	 '("\\(.+\\):\\([0-9]+\\): warning:" 1 2 nil 1)
+
+	 ;; gradle
+	 '("\\(^:.+?:\\(jar\\|testJar\\)\\)\\{0,1\\}\\(.*?\\):\\([0-9]*?\\): error:" 3 4)
+	 '("\\(^:.+?:\\(jar\\|testJar\\)\\)\\{0,1\\}\\(.*?\\):\\([0-9]*?\\): warning:" 3 4 nil 1))))
+
+;; (require 'cedet)
+;; (require 'semantic)
+;; ;; (require 'semanticdb)  
+;; ;; (setq semantic-default-submodes 
+;; ;;       '(global-semanticdb-minor-mode
+;; ;;         global-semantic-decoration-mode
+;; ;;         ;; global-semantic-mru-bookmark-mode
+;; ;;         global-srecode-minor-mode
+;; ;;         global-semantic-highlight-func-mode
+;; ;;         global-semantic-stickyfunc-mode))
+
+
+;; (setq semantic-default-submodes '(global-semantic-idle-scheduler-mode))
+;; (semantic-mode 0)
+
+(use-package org
+  :bind (([f10] org-clock-goto)
+	 ([f11] org-clock-in-last)
+	 ([f12] org-clock-out)
+	 ("\C-cl" 'org-store-link)
+	 ("\C-ca" 'org-agenda)
+	 ("\C-cb" 'org-iswitchb)
+)
+
+  :config
+
+  (setq org-directory (expand-file-name "~/org")
+	org-agenda-files (list (expand-file-name "~/org/db.org")
+			       (expand-file-name "~/org/db-backlog.org")
+			       (expand-file-name "~/org/snippets.org")
+			       (expand-file-name "~/org/environments.org")
+			       (expand-file-name "~/org/notes.org"))
+	org-todo-keywords '((sequence "TODO(t)" "BG(b)" "|" "DONE(d!/!)")
+			    (sequence "TODO(t)" "FG(b)" "|" "DONE(d!/!)")
+			    (sequence "BG" "FG(b)" "|" "DONE(d!/!)")
+			    (sequence "FG" "BG(b)" "|" "DONE(d!/!)"))
+  	org-log-done t
+	org-use-fast-todo-selection t
+	org-todo-keyword-faces '(("TODO"  . (:foreground "orange red" :weight bold))
+				 ("NEXT"  . (:foreground "dodger blue" :weight bold))
+				 ("DONE"  . (:foreground "forest green" :weight bold))
+				 ("WAITING"  . (:foreground "LightSalmon1" :weight bold))
+				 ("HOLD"  . (:foreground "gray" :weight bold))
+				 ("CANCELLED"  . (:foreground "forest green" :weight bold))
+				 ("SOMEDAY"  . (:foreground "pink" :weight bold))
+				 ("BG"  . (:foreground "color-148" :weight bold))
+				 ("FG"  . (:foreground "color-34" :weight bold)))
+	org-clock-persist 'history
+	org-completion-use-ido t
+
+
+	)
+  (org-clock-persistence-insinuate)
+  ;; active Babel languages
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((sh . t)))
+  )
+	
+
+
+
