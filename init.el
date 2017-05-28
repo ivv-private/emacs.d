@@ -1,5 +1,7 @@
 ;;
 ;;
+;;
+;;
 
 (make-directory (locate-user-emacs-file "local/lisp") :no-error)
 (add-to-list 'load-path (locate-user-emacs-file "lisp"))
@@ -33,11 +35,11 @@
       large-file-warning-threshold 536870911
       gc-cons-threshold (* 1024 1024 32)
       ring-bell-function (lambda ())
-      redisplay-dont-pause t
       column-number-mode t
       comint-completion-autolist t
       comint-input-ignoredups t
       comint-use-prompt-regexp t
+      ansi-color-for-comint-mode t
       uniquify-buffer-name-style 'post-forward-angle-brackets
       fill-column 120
 
@@ -47,29 +49,24 @@
 
 (show-paren-mode)
 (prefer-coding-system 'utf-8-unix)
-(ansi-color-for-comint-mode-on)
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 
 (add-hook 'dired-mode-hook (lambda () (rename-buffer (format "*Dired: %s*" (buffer-name)))))
 
-
 (transient-mark-mode 1)
 
-(when (fboundp 'set-horizontal-scroll-bar-mode)
-  (set-horizontal-scroll-bar-mode nil))
+(when (fboundp 'set-horizontal-scroll-bar-mode) (set-horizontal-scroll-bar-mode nil))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 (when (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-
-(if (fboundp 'tooltip-mode) (tooltip-mode -1))
+(when (fboundp 'tooltip-mode) (tooltip-mode -1))
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; Keybindings
 (global-set-key (kbd "C-w") 'backward-kill-word)
 (global-set-key (kbd "C-x C-k") 'kill-region)
-
 (global-set-key (kbd "M-s M-s") 'rgrep)
 (global-set-key (kbd "M-r") 'replace-regexp)
 (global-set-key (kbd "C-x C-g") (lambda () (interactive) (revert-buffer t t t)))
@@ -78,16 +75,16 @@
 
 ;; Packages
 (use-package vc
-  :config(setf vc-handled-backends nil
-	       vc-follow-symlinks t))
+  :config (setf vc-handled-backends nil
+				vc-follow-symlinks t))
 
 (use-package ibuffer
   :bind (("C-x C-b" . ibuffer)))
 
 (use-package whitespace
   :config (setf whitespace-line-column nil
-		whitespace-style '(face trailing space-before-tab newline
-					indentation empty space-after-tab)))
+				whitespace-style '(face trailing space-before-tab newline
+										indentation empty space-after-tab)))
 
 (use-package bookmark
   :config (setf bookmark-default-file (locate-user-emacs-file "local/bookmarks")))
@@ -101,19 +98,17 @@
 (use-package glasses
   :config (setq glasses-original-separator "-"
 		glasses-separator "-"
-		glasses-uncapitalize-p t))
-
-(use-package edit-server
-  :init  (setq server-socket-dir (locate-user-emacs-file "local/srv"))
-  (add-hook 'after-init-hook 'server-start t))
+		glasses-uncapitalize-p t
+		glasses-face "bold")
+  (glasses-set-overlay-properties))
 
 (use-package compile
   :bind (("C-z" . compile))
   :config (setq compilation-always-kill t
-		compilation-ask-about-save nil
-		compilation-auto-jump-to-first-error t
-		compilation-scroll-output nil
-		compilation-window-height 20))
+				compilation-ask-about-save nil
+				compilation-auto-jump-to-first-error t
+				compilation-scroll-output nil
+				compilation-window-height 20))
 
 (use-package ivy
   :config (setq ivy-ignore-buffers (quote ("\\` " "^\\*magit-\\(process\\|diff\\)"))))
@@ -123,9 +118,9 @@
 
 (use-package counsel-gtags
   :bind (("M-." . counsel-gtags-find-definition)
-	 ("C-c t f" . counsel-gtags-find-file)
-	 ("C-c t r" . counsel-gtags-find-reference)
-	 ("C-c t s" . counsel-gtags-find-symbol)))
+		 ("C-c t f" . counsel-gtags-find-file)
+		 ("C-c t r" . counsel-gtags-find-reference)
+		 ("C-c t s" . counsel-gtags-find-symbol)))
 
 (use-package semantic
   :config (setq semanticdb-default-save-directory (locate-user-emacs-file "local/semanticdb"))
@@ -133,85 +128,84 @@
 
 (use-package jdee
   :bind (("<f6>" . jdee-x-run-test)
-	 :map jdee-mode-map
-	 ("M-RET" . jdee-complete-minibuf)
-	 ("C-c C-v C-u" . jdee-package-update)
-	 ("<f5>" . jdee-x-single-test-set)
-	 ("<f10>" . jdee-open-project-file))
+		 :map jdee-mode-map
+		 ("M-RET" . jdee-complete-minibuf)
+		 ("C-c C-v C-u" . jdee-package-update)
+		 ("<f5>" . jdee-x-single-test-set)
+		 ("<f10>" . jdee-open-project-file))
 
   :config (setq jdee-compile-option-hide-classpath t
-		jdee-flycheck-enable-p nil
-		jdee-import-group-function 'jdee-import-group-first-level)
+				jdee-flycheck-enable-p nil
+				jdee-import-group-function 'jdee-import-group-first-level)
 
   (defvar jdee-x-buffer-test nil
     "Test buffer that is binded to current java source")
 
   (defvar jdee-x-single-test ""
     "Selected test for single executionn")
-  (add-hook 'jdee-mode-hook 'java-my-minor))
-  
-  (defun java-my-minor ()
-    (progn
-      (glasses-mode t)
-      (whitespace-mode t)
-      (add-hook 'before-save-hook
-		(lambda ()
-		  (delete-trailing-whitespace)
-		  (jdee-import-kill-extra-imports)
-		  (jdee-import-organize))
-		nil t)
-      (add-hook 'after-save-hook  'jdee-compile nil t))
+
+  (add-hook 'jdee-mode-hook
+			(lambda () 
+			  (glasses-mode t)
+			  (whitespace-mode t)
+			  (add-hook 'before-save-hook
+						(lambda ()
+						  (delete-trailing-whitespace)
+						  (jdee-import-kill-extra-imports)
+						  (jdee-import-organize))
+						nil t)
+			  (add-hook 'after-save-hook  'jdee-compile nil t)))
 
 
   (defun jdee-import-group-first-level (import-tag)
     "My order for importing"
     (let* ((import-name (semantic-tag-name import-tag))
-	   (prefix (substring import-name 0 (string-match "\\." import-name))))
+		   (prefix (substring import-name 0 (string-match "\\." import-name))))
       (cond ((string-match "java" prefix) "1-java")
-	    ((string-match "javax" prefix) "2-javax")
-	    ((string-match "org" prefix) "3-org")
-	    (t prefix))))
+			((string-match "javax" prefix) "2-javax")
+			((string-match "org" prefix) "3-org")
+			(t prefix))))
 
   (defun jdee-x-jump-to-test ()
     "Open corresponded test"
     (interactive)
     (let* ((sources (delete-if-not
-		     'file-exists-p
-		     (mapcar (apply-partially
-			      'expand-file-name
-			      (jdee-package-get-package-directory)) jdee-sourcepath)))
-	   (test-file-name (concat (jdee-junit-get-tester-name
-				    (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
-				   ".java"))
-	   (fn (find-if 'file-exists-p  (mapcar (apply-partially 'expand-file-name test-file-name) sources))))
+					 'file-exists-p
+					 (mapcar (apply-partially
+							  'expand-file-name
+							  (jdee-package-get-package-directory)) jdee-sourcepath)))
+		   (test-file-name (concat (jdee-junit-get-tester-name
+									(file-name-sans-extension (file-name-nondirectory buffer-file-name)))
+								   ".java"))
+		   (fn (find-if 'file-exists-p  (mapcar (apply-partially 'expand-file-name test-file-name) sources))))
       (if fn
-	  (find-file fn)
-	(progn
-	  (setq default-directory (car (last sources)))
-	  (call-interactively 'find-file)))))
+		  (find-file fn)
+		(progn
+		  (setq default-directory (car (last sources)))
+		  (call-interactively 'find-file)))))
 
   (defun jdee-x-run-test ()
     "Run junit test"
     (interactive)
 
     (unless jdee-x-buffer-test
-      (error "There is no selected unit test buffer. Jump to the junit buffer and press f6"))
+      (error "There is no selected unit test buffer"))
 
     (with-current-buffer (get-buffer jdee-x-buffer-test)
       (jdee-load-project-file)
       (add-to-list 'jdee-global-classpath (expand-file-name "~/usr/lib/single-test-runner-1.0.jar"))
       (if jdee-x-single-test
-	  (setq jdee-junit-testrunner-type "x.junit.SingleTestRunner")
-	(setq jdee-junit-testrunner-type "org.junit.runner.JUnitCore"))
+		  (setq jdee-junit-testrunner-type "x.junit.SingleTestRunner")
+		(setq jdee-junit-testrunner-type "org.junit.runner.JUnitCore"))
       (if current-prefix-arg
-	  (add-to-list 'jdee-run-option-vm-args "-agentlib:jdwp=transport=dt_socket,address=localhost:9009,server=y,suspend=y"))
+		  (add-to-list 'jdee-run-option-vm-args "-agentlib:jdwp=transport=dt_socket,address=localhost:9009,server=y,suspend=y"))
       (let ((saved-dir default-directory))
-	(jdee-junit-run)
-	(setq default-directory saved-dir))
+		(jdee-junit-run)
+		(setq default-directory saved-dir))
       (if (remove-if 'null (mapcar
-			    (lambda (arg) (string-match "-agentlib:jdwp.*suspend=y" arg))
-			    jdee-run-option-vm-args))
-	  (jdb "jdb -connect com.sun.jdi.SocketAttach:port=9009,hostname=localhost")))
+							(lambda (arg) (string-match "-agentlib:jdwp.*suspend=y" arg))
+							jdee-run-option-vm-args))
+		  (jdb "jdb -connect com.sun.jdi.SocketAttach:port=9009,hostname=localhost")))
 
     (jdee-load-project-file))
 
@@ -221,33 +215,35 @@
     (setq jdee-x-buffer-test (current-buffer))
 
     (if current-prefix-arg
-	(setq jdee-x-single-test (read-string "Single test to run: "))
+		(setq jdee-x-single-test (read-string "Single test to run: "))
       (let ((method (jdee-parse-get-method-at-point)))
-	(setq jdee-x-single-test
-	      (if method
-		  (let ((test-name (cdr (car method))))
-		    (message (format "Single running test: %s" test-name))
-		    test-name)
-		(progn
-		  (message "Toggle all running tests")
-		  ()))))))
+		(setq jdee-x-single-test
+			  (if method
+				  (let ((test-name (cdr (car method))))
+					(message (format "Single running test: %s" test-name))
+					test-name)
+				(progn
+				  (message "Toggle all running tests")
+				  ()))))))
 
-  (defmethod jdee-run-vm-args ((this jdee-run-vm))
+  (cl-defmethod jdee-run-vm-args ((this jdee-run-vm))
     "Get command line args."
     (if jdee-x-single-test
-	(append jdee-run-option-vm-args
-		(list (format "-Dtest.single=%s" jdee-x-single-test)))
-      jdee-run-option-vm-args))
-
-      )
+		(append jdee-run-option-vm-args (list (format "-Dtest.single=%s" jdee-x-single-test)))
+      jdee-run-option-vm-args)))
 
 
 (use-package gud
   :bind (("<f2>" . gud-step)
-	 ("<f3>" . gud-next)
-	 ("<f7>" . gud-cont))
-  :config
-  (setq gud-jdb-use-classpath t)
+		 ("<f3>" . gud-next)
+		 ("<f7>" . gud-cont))
+  :config (setq gud-jdb-use-classpath t)
+  (require 'jdb-sourcepath)
+  (add-hook
+   'jdb-mode-hook
+   (lambda ()
+     (setq gud-jdb-classpath (jdb-sourcepath-from-rc)
+		   comint-prompt-regexp "^.*\] ")))
   (gud-def
    gud-redefine
    (gud-call
@@ -255,18 +251,7 @@
      "redefine %%c %s/%s.class"
      (file-truename jdee-compile-option-directory)
      (gud-format-command "%c" arg)))
-   ;; (replace-regexp-in-string "\\." "/" (gud-format-command "%c" arg)))))
-   "\C-r" "Redefine class")
-
-  ;; TODO Make jdb-sourcepath as package
-  ;; autoload
-  (use-package jdb-sourcepath
-    :config
-    (add-hook
-     'jdb-mode-hook
-     (lambda ()
-       (setq gud-jdb-classpath (jdb-sourcepath-from-rc)
-	     comint-prompt-regexp "^.*\] ")))))
+   "\C-r" "Redefine class"))
 
 (use-package groovy-mode)
 
@@ -281,22 +266,20 @@
 
 (use-package ivy
   :bind (("C-c SPC" . ivy-resume)
-	 ("M-o" . ivy-switch-buffer))
-  :config
-  (ivy-mode 1)
-  (setq enable-recursive-minibuffers t))
+		 ("M-o" . ivy-switch-buffer))
+  :config (setq enable-recursive-minibuffers t)
+  (ivy-mode 1))
 
 (use-package counsel
-  :bind
-  (("M-x" . counsel-M-x)
-   ("C-x C-f" . counsel-find-file)
-   ("C-x r b" . counsel-bookmark)
-   ("C-x l" . counsel-locate)
-   ("C-x g" . counsel-git)))
+  :bind (("M-x" . counsel-M-x)
+		 ("C-x C-f" . counsel-find-file)
+		 ("C-x r b" . counsel-bookmark)
+		 ("C-x l" . counsel-locate)
+		 ("C-x g" . counsel-git)))
 
 (use-package swiper
-  :bind
-  (("C-s" . swiper))
+  ;; TODO C-/ as isearch-forwardd
+  :bind (("C-s" . swiper))
 
   ;; (require 'thingatpt)
   ;; ;; ivy counsel swiper
@@ -321,59 +304,53 @@
   :bind (("C-c g s" . magit-status)))
 
 (use-package midnight
-  :init
-  (midnight-mode 1))
+  :init (midnight-mode 1))
 
 (use-package ibuffer
-  :config
-  (setq ibuffer-saved-filter-groups
-	(quote (("default"
-		 ("java" (or
-			  (mode . jdee-mode)
-			  (mode . java-mode)))
-		 ("gradle" (name . ".*gradle$"))
-		 ("shell" (mode . shell-mode))
-		 ("dired" (mode . dired-mode))
-		 ("emacs" (or
-			   (name . "^\\*scratch\\*$")
-			   (name . "^\\*Messages\\*$")))
-		 ))))
+  :config (setq ibuffer-saved-filter-groups
+				'(("default"
+				   ("java" (or
+							(mode . jdee-mode)
+							(mode . java-mode)))
+				   ("gradle" (name . ".*gradle$"))
+				   ("shell" (mode . shell-mode))
+				   ("dired" (mode . dired-mode))
+				   ("emacs" (or
+							 (name . "^\\*scratch\\*$")
+							 (name . "^\\*Messages\\*$"))))))
   (add-hook 'ibuffer-mode-hook
-	    (lambda ()
-	      (ibuffer-switch-to-saved-filter-groups "default"))))
+			(lambda ()
+			  (ibuffer-switch-to-saved-filter-groups "default"))))
 
 (use-package windmove
   :bind (("M-p" . windmove-up)
-	 ("M-n" . windmove-down)
-	 ("M-j" . windmove-left))
+		 ("M-n" . windmove-down)
+		 ("M-j" . windmove-left))
   ("M-l" . windmove-right))
 
 
 (use-package multiple-cursors
-  :bind ("C-c m l" . mc/edit-lines)
-  ("C-c m a" . mc/mark-all-like-this)
-  ("C-c >" . mc/mark-next-like-this)
+  :bind (("C-c m l" . mc/edit-lines)
+		 ("C-c m a" . mc/mark-all-like-this)
+		 ("C-c >" . mc/mark-next-like-this))
   :config (setq mc/list-file (locate-user-emacs-file "local/.mc-lists.el")))
 
 (use-package tramp
-  :config
-  (setq tramp-default-method "ssh"))
-
+  :config (setq tramp-default-method "ssh"))
 
 (use-package compile
-  :config
-  (setq compilation-error-regexp-alist
-	(list
-	 ;; gradle
-	 '("\\(/.+\\):\\([0-9]+\\): error:" 1 2)
+  :config (setq compilation-error-regexp-alist
+				(list
+				 ;; gradle
+				 '("\\(/.+\\):\\([0-9]+\\): error:" 1 2)
 
-	 ;; eclipce java compiler
-	 '("\\(.+\\):\\([0-9]+\\): error:" 1 2)
-	 '("\\(.+\\):\\([0-9]+\\): warning:" 1 2 nil 1)
+				 ;; eclipce java compiler
+				 '("\\(.+\\):\\([0-9]+\\): error:" 1 2)
+				 '("\\(.+\\):\\([0-9]+\\): warning:" 1 2 nil 1)
 
-	 ;; gradle
-	 '("\\(^:.+?:\\(jar\\|testJar\\)\\)\\{0,1\\}\\(.*?\\):\\([0-9]*?\\): error:" 3 4)
-	 '("\\(^:.+?:\\(jar\\|testJar\\)\\)\\{0,1\\}\\(.*?\\):\\([0-9]*?\\): warning:" 3 4 nil 1))))
+				 ;; gradle
+				 '("\\(^:.+?:\\(jar\\|testJar\\)\\)\\{0,1\\}\\(.*?\\):\\([0-9]*?\\): error:" 3 4)
+				 '("\\(^:.+?:\\(jar\\|testJar\\)\\)\\{0,1\\}\\(.*?\\):\\([0-9]*?\\): warning:" 3 4 nil 1))))
 
 
 ;; TODO Cedet, Semantic
@@ -394,28 +371,27 @@
 
 (use-package org
   :bind (("<f10>" . org-clock-goto)
-	 ("<f11>" . org-clock-in-last)
-	 ("<f12>" . org-clock-out)
-	 ("\C-cl" . org-store-link)
-	 ("\C-ca" . org-agenda)
-	 ("\C-cb" . org-iswitchb))
+		 ("<f11>" . org-clock-in-last)
+		 ("<f12>" . org-clock-out)
+		 ("\C-cl" . org-store-link)
+		 ("\C-ca" . org-agenda)
+		 ("\C-cb" . org-iswitchb))
 
 
-  :config
-  (setq org-directory (expand-file-name "~/org")
-	org-todo-keywords '((sequence "TODO(t)" "BG(b)" "|" "DONE(d!/!)")
-			    (sequence "TODO(t)" "FG(b)" "|" "DONE(d!/!)")
-			    (sequence "BG" "FG(b)" "|" "DONE(d!/!)")
-			    (sequence "FG" "BG(b)" "|" "DONE(d!/!)"))
-	org-todo-keyword-faces '(("TODO"  . (:foreground "orange red" :weight bold))
-				 ("DONE"  . (:foreground "forest green" :weight bold))
-				 ("BG"  . (:foreground "color-148" :weight bold))
-				 ("FG"  . (:foreground "color-34" :weight bold)))
-	org-clock-persist-file (locate-user-emacs-file "local/org-clock-save.el")
-	org-log-done t
-	org-use-fast-todo-selection t
-	org-clock-persist 'history
-	org-completion-use-ido t)
+  :config (setq org-directory (expand-file-name "~/org")
+				org-todo-keywords '((sequence "TODO(t)" "BG(b)" "|" "DONE(d!/!)")
+									(sequence "TODO(t)" "FG(b)" "|" "DONE(d!/!)")
+									(sequence "BG" "FG(b)" "|" "DONE(d!/!)")
+									(sequence "FG" "BG(b)" "|" "DONE(d!/!)"))
+				org-todo-keyword-faces '(("TODO"  . (:foreground "orange red" :weight bold))
+										 ("DONE"  . (:foreground "forest green" :weight bold))
+										 ("BG"  . (:foreground "color-148" :weight bold))
+										 ("FG"  . (:foreground "color-34" :weight bold)))
+				org-clock-persist-file (locate-user-emacs-file "local/org-clock-save.el")
+				org-log-done t
+				org-use-fast-todo-selection t
+				org-clock-persist 'history
+				org-completion-use-ido t)
 
   (org-clock-persistence-insinuate)
   ;; active Babel languages
