@@ -1,12 +1,16 @@
+;;;###autoload
 (defvar org-jira-x-jira-url ""
   "Jira server url")
 
+;;;###autoload
 (defvar org-jira-x-username ""
   "Jira username")
 
+;;;###autoload
 (defvar org-jira-x-password ""
   "Jira password")
 
+;;;###autoload
 (defvar org-jira-x-progress-trans ()
   "Jira transitions")
 
@@ -41,7 +45,7 @@
       (kill-ring-save (point-min) (point-max))
       (kill-buffer (current-buffer)))))
 
-
+;;;###autoload
 (defun org-jira-x-issue(jid)
   "Add Jira ticket as todo item"
   (interactive (list (read-string "Jira ID: ")))
@@ -67,7 +71,7 @@
     (org-set-property "JiraId" (assoc-default 'key issue))
     (org-set-property "Effort" (format "%d" (/ (assoc-default 'originalEstimateSeconds timetracking) 60)))))
 
-
+;;;###autoload
 (defun org-jira-x-update-worklog()
   "Update worklog"
   (interactive)
@@ -106,9 +110,7 @@
 		       )))
 		  ))))))))
 
-
-
-
+;;;###autoload
 (defun org-jira-x-do-progress ()
   "Update Jira ticket"
   (interactive)

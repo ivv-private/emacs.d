@@ -1,11 +1,14 @@
 (require 'find-lisp)
 
-(defvar jdb-sourcepath-root "~/projects"
+;;;###autoload
+(defvar jdb-sourcepath-root "~/usr/src"
   "Root directory which contains a sources")
 
+;;;###autoload
 (defvar jdb-sourcepath-prune '("target" ".svn" "arch" "examples" "tests" "test" "samples" "." "..")
   "Directories to skip while searching")
 
+;;;###autoload
 (defvar jdb-rcfile "~/.jdbrc"
   "Jdb rc file")
 
@@ -40,6 +43,7 @@
      (file-directory-p file-name)
      (directory-files file-name nil jdb-sourcepath-java-file))))
 
+;;;###autoload
 (defun jdb-setup ()
   "Find  java-sourcepathes within `jdb-sourcepath-root' and write to `jdb-rcfile'"
   (interactive)
@@ -69,6 +73,7 @@
         (save-buffer)
         (kill-buffer)))))
 
+;;;###autoload
 (defun jdb-sourcepath-from-rc ()
   "Get list of sourcepathes from `jdb-rcfile' file"
   (with-temp-buffer

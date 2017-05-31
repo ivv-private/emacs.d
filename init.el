@@ -45,7 +45,7 @@
 
       standard-indent 1
       indent-tabs-mode t
-      tab-width 4)
+      default-tab-width 4)
 
 (show-paren-mode)
 (prefer-coding-system 'utf-8-unix)
@@ -74,6 +74,9 @@
 
 
 ;; Packages
+(use-package url
+  :config (setf url-configuration-directory (locate-user-emacs-file "local/url")))
+
 (use-package vc
   :config (setf vc-handled-backends nil
 				vc-follow-symlinks t))
@@ -266,7 +269,8 @@
 
 (use-package ivy
   :bind (("C-c SPC" . ivy-resume)
-		 ("M-o" . ivy-switch-buffer))
+		 ("M-o" . ivy-switch-buffer)
+		 ("M-C-o" . ivy-switch-buffer-other-window))
   :config (setq enable-recursive-minibuffers t)
   (ivy-mode 1))
 
