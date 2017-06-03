@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: ssh agent reset auth socket
+# key: sshag
+# binding: direct-keybinding
+# --
+export SSH_AUTH_SOCK=$(find /tmp/ -name 'agent*' 2>/dev/null | head -n1) && emacsclient -e "$(printf '(setenv "SSH_AUTH_SOCK" "%s")' $SSH_AUTH_SOCK)"

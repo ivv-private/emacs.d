@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: git pull and push
+# key: gpp
+# binding: direct-keybinding
+# --
+git pull --rebase && git push

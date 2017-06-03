@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: git cherry pick
+# key: gc
+# binding: direct-keybinding
+# --
+git cherry-pick $1

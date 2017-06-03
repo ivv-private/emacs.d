@@ -1,0 +1,43 @@
+# key: testsprint
+# name: Test Class Spring
+# --
+`(jdee-package-update)`
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Properties;
+
+@Configuration
+public class `(file-name-base (or (buffer-file-name) (buffer-name)))` {
+
+    @SuppressWarnings("serial")
+    private static Properties PROPS = new Properties() {{
+        put("", "");
+    }};
+
+    @Bean
+    public static PropertyPlaceholderConfigurer newProps() {
+        PropertyPlaceholderConfigurer cfg = new PropertyPlaceholderConfigurer();
+        cfg.setProperties(PROPS);
+        return cfg;
+    }
+
+    @Bean(name="test")
+    public static Object newBean() {
+        return new Object();
+    }
+
+    @Test
+    public void testFlushQueue() throws Exception {
+        try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(getClass())) {
+            Object obj = ctx.getBean(Object.class);
+        }
+    }
+
+}

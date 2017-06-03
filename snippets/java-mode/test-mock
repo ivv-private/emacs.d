@@ -1,0 +1,27 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: TestClassJunitMocks
+# key: testmock
+# binding: direct-keybinding
+# --
+`(jdee-package-update)`
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+
+public class `(file-name-base (or (buffer-file-name) (buffer-name)))` {
+
+    @Before
+    public void init() {
+
+    }
+
+    @Test
+    public void testCase() {
+
+    }
+
+}

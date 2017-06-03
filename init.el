@@ -2,9 +2,7 @@
 ;;
 ;;
 ;;
-
 (make-directory (locate-user-emacs-file "local/lisp") :no-error)
-(add-to-list 'load-path (locate-user-emacs-file "lisp"))
 
 ;; Setup package manager
 (require 'package)
@@ -282,21 +280,16 @@
 		 ("C-x g" . counsel-git)))
 
 (use-package swiper
-  ;; TODO C-/ as isearch-forwardd
-  :bind (("C-s" . swiper))
-
-  ;; (require 'thingatpt)
-  ;; ;; ivy counsel swiper
-  ;;   (require 'thingatpt)
-
-
-  ;;   (global-set-key "\C-s" (lambda ()
-  ;; 			   (interactive)
-  ;; 			   (swiper (let ((thing (thing-at-point 'symbol)))
-  ;; 				     (if thing
-  ;; 					 (format "\\<%s\\>" thing)
-  ;; 				       ())))))
-  )
+  :bind (("C-s" . swiper)
+		 ("C-M-s" . swiper-x-symbol-at-point))
+  :config (require 'thingatpt)
+  (defun swiper-x-symbol-at-point ()
+	"Swiper with initial symbol at point"
+	(interactive)
+	(swiper (let ((thing (thing-at-point 'symbol)))
+			  (if thing
+				  (format "\\<%s\\>" thing)
+				())))))
 
 (use-package avy
   :bind (("M-," . avy-goto-word-1)))
@@ -337,7 +330,7 @@
   :bind (("C-c m l" . mc/edit-lines)
 		 ("C-c m a" . mc/mark-all-like-this)
 		 ("C-c >" . mc/mark-next-like-this))
-  :config (setq mc/list-file (locate-user-emacs-file "local/.mc-lists.el")))
+  :config (setf mc/list-file (locate-user-emacs-file "local/.mc-lists.el")))
 
 (use-package tramp
   :config (setq tramp-default-method "ssh"))
@@ -400,6 +393,12 @@
   (org-clock-persistence-insinuate)
   ;; active Babel languages
   (org-babel-do-load-languages 'org-babel-load-languages '((sh . t))))
+
+;; load my lisp
+(let ((generated-autoload-file (locate-user-emacs-file "lisp/loaddefs.el"))
+	  (my-lisp-dir (locate-user-emacs-file "lisp")))
+  (update-directory-autoloads my-lisp-dir)
+  (load-library (locate-user-emacs-file "lisp/loaddefs.el")))
 
 
 ;; load local settings

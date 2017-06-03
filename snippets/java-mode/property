@@ -1,0 +1,14 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: property
+# key: prop
+# binding: direct-keybinding
+# --
+private ${1:String} ${2:name};
+
+public $1 get${2:$(upcase-initials yas-text)}() {
+    return $2;
+}
+
+public void set${2:$(upcase-initials yas-text)}($1 $2) {
+    this.$2 = $2;
+}

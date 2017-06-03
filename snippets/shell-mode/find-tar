@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: find tar
+# key: ft
+# binding: direct-keybinding
+# --
+find -L ${1:.} -ipath '*$2*' -iname '*$3*tar' -printf '%p\n' -exec tar -x --ignore-command-error --to-command='zgrep $4' -f {} \;

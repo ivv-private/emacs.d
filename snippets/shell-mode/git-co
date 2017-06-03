@@ -1,0 +1,6 @@
+#- mode: snippet; require-final-newline: nil -*-
+# name: git checkout
+# key: gco
+# binding: direct-keybinding
+# --
+git checkout ${1:$$(yas-choose-value (delete-dups (mapcar (lambda (ref) (replace-regexp-in-string "^origin/" "" ref)) (magit-list-branch-names))))}

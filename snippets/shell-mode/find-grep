@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: find grep
+# key: fg
+# binding: direct-keybinding
+# --
+find -L ${1:.} -ipath '*$2*' -iname '*$3*' -type f -printf '%p\0' | xargs -0 grep $4

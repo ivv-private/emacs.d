@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: find files
+# key: ff
+# binding: direct-keybinding
+# --
+find -L . -iname '*$1*' -ipath '*$2*' -type f

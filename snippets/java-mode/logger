@@ -1,0 +1,18 @@
+# name: logger
+# key: logger
+# type: command
+# binding: direct-keybinding
+# --
+(point-to-register 'yas-x-logger-point)
+(goto-char (jdee-import-get-import-insertion-point))
+
+(insert "import org.slf4j.Logger;\n")
+(insert "import org.slf4j.LoggerFactory;\n")
+
+(jump-to-register 'yas-x-logger-point)
+
+(insert (format "private static final Logger LOGGER = LoggerFactory.getLogger(%s.class);" (file-name-base
+                    (or (buffer-file-name)
+                        (buffer-name)))))
+
+

@@ -1,0 +1,7 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: remote set profile
+# key: rp
+# binding: direct-keybinding
+# --
+export PS1='\[\033[1;32m\]\e[1m \n\D{%Y-%m-%d %k:%M:%S} | \D{%z %Z} | \u@\H:\w\e[0m\n$ '
+export TERM=xterm-256

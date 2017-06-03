@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: git list branches
+# key: gb
+# binding: direct-keybinding
+# --
+git br -a --list '*$1*$2*'# -*- mode: snippet; require-final-newline: nil -*-

@@ -1,4 +1,4 @@
-;;; autoloads.el --- automatically extracted autoloads
+;;; loaddefs.el --- automatically extracted autoloads
 ;;
 ;;; Code:
 
@@ -28,7 +28,7 @@ Get list of sourcepathes from `jdb-rcfile' file
 
 ;;;***
 
-;;;### (autoloads nil "jira" "jira.el" (22830 65207 202120 503000))
+;;;### (autoloads nil "jira" "jira.el" (22831 1243 300113 758000))
 ;;; Generated autoloads from jira.el
 
 (defvar org-jira-x-jira-url "" "\
@@ -60,11 +60,11 @@ Update Jira ticket
 
 ;;;***
 
-(provide 'autoloads)
+(provide 'loaddefs)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
 ;; coding: utf-8
 ;; End:
-;;; autoloads.el ends here
+;;; loaddefs.el ends here

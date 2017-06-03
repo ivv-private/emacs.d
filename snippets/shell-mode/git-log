@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: git log
+# key: gl
+# binding: direct-keybinding
+# --
+git log -n${1:5}
